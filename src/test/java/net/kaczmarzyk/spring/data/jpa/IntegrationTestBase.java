@@ -59,6 +59,15 @@ public abstract class IntegrationTestBase {
 	@Autowired
 	protected CustomerRepository customerRepo;
 
+	@Autowired
+	protected BRepository bRepository;
+
+	@Autowired
+	protected CRepository cRepository;
+
+	@Autowired
+	protected ERepository eRepository;
+
 	@PersistenceContext
 	protected EntityManager em;
 
