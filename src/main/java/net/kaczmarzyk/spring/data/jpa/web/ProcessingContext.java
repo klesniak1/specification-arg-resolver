@@ -15,18 +15,21 @@
  */
 package net.kaczmarzyk.spring.data.jpa.web;
 
-import org.springframework.data.jpa.domain.Specification;
+import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
 
 import java.lang.annotation.Annotation;
 
-public interface SpecificationResolver<T extends Annotation> {
+public interface ProcessingContext {
 
-	default <K extends Annotation> boolean supports(K specDefinition) {
-		return getSupportedSpecificationDefinition().equals(specDefinition.annotationType());
-	}
+	public Class<?> getParameterType();
 
-	Class<? extends Annotation> getSupportedSpecificationDefinition();
+	public Annotation[] getParameterAnnotations();
 
-	Specification<Object> buildSpecification(ProcessingContext context, T def);
+	public QueryContext queryContext();
 
+	public String getRequestHeaderValue(String headerKey);
+
+	public String[] getParameterValues(String webParamName);
+
+	public String getPathVariableValue(String pathVariableName);
 }

@@ -26,6 +26,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -88,7 +89,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
 	                              WebDataBinderFactory binderFactory) throws Exception {
 
-		WebRequestProcessingContext context = new WebRequestProcessingContext(parameter, webRequest);
+		ProcessingContext context = new WebRequestProcessingContext(parameter, webRequest);
 
 		List<Specification<Object>> specs = resolveSpec(context);
 
@@ -111,7 +112,38 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 		return EnhancerUtil.wrapWithIfaceImplementation(parameter.getParameterType(), spec);
 	}
 
-	private List<Specification<Object>> resolveSpec(WebRequestProcessingContext context) throws Exception {
+	public Object resolveArgument(Class<?> ifaceSpec,
+								  Map<String, List<String>> args,
+								  Map<String, String> pathVariableArgs,
+								  Map<String, List<String>> parameterArgs,
+								  Map<String, String> headerArgs) {
+
+		ProcessingContext context = new DefaultProcessingContext(ifaceSpec, args, pathVariableArgs, parameterArgs, headerArgs);
+
+		Type specClassType = ifaceSpec.getGenericSuperclass();
+
+		List<Specification<Object>> specs = resolveSpec(context);
+
+		if (specs.isEmpty()) {
+			return null;
+		}
+
+		if (specs.size() == 1) {
+			Specification<Object> firstSpecification = specs.iterator().next();
+
+			if (Specification.class == ifaceSpec) {
+				return firstSpecification;
+			} else {
+				return EnhancerUtil.wrapWithIfaceImplementation(ifaceSpec, firstSpecification);
+			}
+		}
+
+		Specification<Object> spec = new net.kaczmarzyk.spring.data.jpa.domain.Conjunction<>(specs);
+
+		return EnhancerUtil.wrapWithIfaceImplementation(ifaceSpec, spec);
+	}
+
+	private List<Specification<Object>> resolveSpec(ProcessingContext context) {
 		List<Specification<Object>> specAccumulator = new ArrayList<>();
 
 		resolveSpecFromInterfaceAnnotations(context, specAccumulator);
@@ -120,7 +152,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 		return specAccumulator;
 	}
 
-	private void resolveSpecFromParameterAnnotations(WebRequestProcessingContext context,
+	private void resolveSpecFromParameterAnnotations(ProcessingContext context,
 	                                                 List<Specification<Object>> accum) {
 		forEachSupportedSpecificationDefinition(
 				context.getParameterAnnotations(),
@@ -133,7 +165,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 		);
 	}
 
-	private void resolveSpecFromInterfaceAnnotations(WebRequestProcessingContext context,
+	private void resolveSpecFromInterfaceAnnotations(ProcessingContext context,
 	                                                 List<Specification<Object>> accumulator) {
 		Collection<Class<?>> ifaceTree = TypeUtil.interfaceTree(context.getParameterType());
 
@@ -149,7 +181,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 		}
 	}
 
-	private Specification<Object> buildSpecification(WebRequestProcessingContext context, Annotation specDef) {
+	private Specification<Object> buildSpecification(ProcessingContext context, Annotation specDef) {
 		SpecificationResolver resolver = resolversBySupportedType.get(specDef.annotationType());
 
 		if (resolver == null) {
