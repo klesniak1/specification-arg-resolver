@@ -17,14 +17,13 @@ package net.kaczmarzyk.spring.data.jpa.web;
 
 import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
 
-import javax.management.Query;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.isNull;
 
-public class DefaultProcessingContext implements ProcessingContext {
+public class StandaloneProcessingContext implements ProcessingContext {
 
 	private Class<?> specInterface;
 
@@ -35,7 +34,11 @@ public class DefaultProcessingContext implements ProcessingContext {
 
 	private QueryContext queryContext;
 
-	public DefaultProcessingContext(Class<?> specInterface, Map<String, List<String>> args, Map<String, String> pathVariableArgs, Map<String, List<String>> parameterArgs, Map<String, String> headerArgs) {
+	public StandaloneProcessingContext(Class<?> specInterface,
+									   Map<String, List<String>> args,
+									   Map<String, String> pathVariableArgs,
+									   Map<String, List<String>> parameterArgs,
+									   Map<String, String> headerArgs) {
 		this.specInterface = specInterface;
 		this.args = args;
 		this.pathVariableArgs = pathVariableArgs;

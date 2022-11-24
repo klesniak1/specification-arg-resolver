@@ -15,15 +15,15 @@
  */
 package net.kaczmarzyk.spring.data.jpa.utils;
 
+import net.kaczmarzyk.spring.data.jpa.web.ProcessingContext;
 import net.kaczmarzyk.spring.data.jpa.web.SpecificationArgumentResolver;
+import net.kaczmarzyk.spring.data.jpa.web.SpecificationFactory;
+import net.kaczmarzyk.spring.data.jpa.web.StandaloneProcessingContext;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Collections.singletonList;
 
 public class SpecificationBuilder {
 
@@ -34,10 +34,11 @@ public class SpecificationBuilder {
 	private Map<String, List<String>> params = new HashMap<>();
 	private Map<String, String> headers = new HashMap<>();
 
-	SpecificationArgumentResolver specificationArgumentResolver = new SpecificationArgumentResolver();
+	SpecificationFactory specificationFactory;
 
 	private SpecificationBuilder(Class<?> specInterface) {
 		this.specInterface = specInterface;
+		this.specificationFactory = new SpecificationFactory();
 	}
 
 	public static SpecificationBuilder specification(Class<? extends Specification<?>> specInterface) {
@@ -50,25 +51,23 @@ public class SpecificationBuilder {
 	}
 
 	public SpecificationBuilder withParams(String param, List<String> values) {
-		this.args.put(param, values);
 		this.params.put(param, values);
 		return this;
 	}
 
 	public SpecificationBuilder withPathVar(String pathVar, String value) {
-		this.args.put(pathVar, singletonList(value));
 		this.pathVars.put(pathVar, value);
 		return this;
 	}
 
 	public SpecificationBuilder withHeader(String header, String value) {
-		this.args.put(header, singletonList(value));
 		this.headers.put(header, value);
 		return this;
 	}
 
 	public Specification<?> build() {
-		return specificationArgumentResolver.resolveArgument(specInterface, args, pathVars, params, headers);
+		ProcessingContext context = new StandaloneProcessingContext(specInterface, args, pathVars, params, headers);
+		return specificationFactory.createSpecificationDependingOn(context);
 	}
 
 }
