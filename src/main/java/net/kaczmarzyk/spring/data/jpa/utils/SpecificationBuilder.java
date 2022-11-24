@@ -18,31 +18,30 @@ package net.kaczmarzyk.spring.data.jpa.utils;
 import net.kaczmarzyk.spring.data.jpa.web.SpecificationArgumentResolver;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.singletonList;
+
 public class SpecificationBuilder {
 
-	private Class<?> classType;
+	private Class<?> specInterface;
 
-	private Map<String, List<String>> args;
-	private Map<String, String> pathVariableArgs;
-	private Map<String, List<String>> parameterArgs;
-	private Map<String, String> headerArgs;
+	private Map<String, List<String>> args = new HashMap<>();
+	private Map<String, String> pathVars = new HashMap<>();
+	private Map<String, List<String>> params = new HashMap<>();
+	private Map<String, String> headers = new HashMap<>();
 
 	SpecificationArgumentResolver specificationArgumentResolver = new SpecificationArgumentResolver();
 
-	private SpecificationBuilder(Class<?> classType) {
-		this.classType = classType;
-		this.args = new HashMap<>();
-		this.pathVariableArgs = new HashMap<>();
-		this.parameterArgs = new HashMap<>();
-		this.headerArgs = new HashMap<>();
+	private SpecificationBuilder(Class<?> specInterface) {
+		this.specInterface = specInterface;
 	}
 
-	public static SpecificationBuilder specification(Class<? extends Specification<?>> spec) {
-		return new SpecificationBuilder(spec);
+	public static SpecificationBuilder specification(Class<? extends Specification<?>> specInterface) {
+		return new SpecificationBuilder(specInterface);
 	}
 
 	public SpecificationBuilder withArg(String arg, List<String> values) {
@@ -50,23 +49,26 @@ public class SpecificationBuilder {
 		return this;
 	}
 
-	public SpecificationBuilder withPathVariableArg(String arg, String value) {
-		this.pathVariableArgs.put(arg, value);
+	public SpecificationBuilder withParams(String param, List<String> values) {
+		this.args.put(param, values);
+		this.params.put(param, values);
 		return this;
 	}
 
-	public SpecificationBuilder withParameterArg(String arg, List<String> values) {
-		this.parameterArgs.put(arg, values);
+	public SpecificationBuilder withPathVar(String pathVar, String value) {
+		this.args.put(pathVar, singletonList(value));
+		this.pathVars.put(pathVar, value);
 		return this;
 	}
 
-	public SpecificationBuilder withHeaderArg(String arg, String value) {
-		this.headerArgs.put(arg, value);
+	public SpecificationBuilder withHeader(String header, String value) {
+		this.args.put(header, singletonList(value));
+		this.headers.put(header, value);
 		return this;
 	}
 
-	public Object build() {
-		return specificationArgumentResolver.resolveArgument(classType, args, pathVariableArgs, parameterArgs, headerArgs);
+	public Specification<?> build() {
+		return specificationArgumentResolver.resolveArgument(specInterface, args, pathVars, params, headers);
 	}
 
 }

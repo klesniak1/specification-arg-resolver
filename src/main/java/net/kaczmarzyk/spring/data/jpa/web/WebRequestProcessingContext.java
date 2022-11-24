@@ -52,18 +52,22 @@ public class WebRequestProcessingContext implements ProcessingContext {
 		this.queryContext = new DefaultQueryContext();
 	}
 
+	@Override
 	public Class<?> getParameterType() {
 		return methodParameter.getParameterType();
 	}
 
+	@Override
 	public Annotation[] getParameterAnnotations() {
 		return methodParameter.getParameterAnnotations();
 	}
 
+	@Override
 	public String[] getParameterValues(String webParamName) {
 		return webRequest.getParameterValues(webParamName);
 	}
 
+	@Override
 	public QueryContext queryContext() {
 		if (isNull(queryContext)) {
 			this.queryContext = new DefaultQueryContext();
@@ -71,6 +75,7 @@ public class WebRequestProcessingContext implements ProcessingContext {
 		return queryContext;
 	}
 
+	@Override
 	public String getPathVariableValue(String pathVariableName) {
 		if(resolvedPathVariables == null) {
 			resolvedPathVariables = PathVariableResolver.resolvePathVariables(pathPattern(), actualWebPath());
@@ -83,6 +88,7 @@ public class WebRequestProcessingContext implements ProcessingContext {
 		}
 	}
 
+	@Override
 	public String getRequestHeaderValue(String headerKey) {
 		return webRequest.getHeader(headerKey);
 	}

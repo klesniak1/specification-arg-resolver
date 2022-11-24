@@ -17,11 +17,12 @@ package net.kaczmarzyk;
 
 
 import net.kaczmarzyk.spring.data.jpa.Customer;
-import net.kaczmarzyk.spring.data.jpa.domain.Like;
+import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.domain.In;
 import net.kaczmarzyk.spring.data.jpa.domain.LikeIgnoreCase;
-import net.kaczmarzyk.spring.data.jpa.web.annotation.Or;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -29,30 +30,23 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.kaczmarzyk.spring.data.jpa.utils.SpecificationBuilder.specification;
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SpecificationBuilderTest extends E2eTestBase {
 
-	@Or({
-			@Spec(path = "firstName", params = "name", spec = LikeIgnoreCase.class),
-			@Spec(path = "lastName", params = "name", spec = LikeIgnoreCase.class)
-	})
+	@Join(path = "orders", alias = "o")
+	@Spec(path = "o.itemName", params = "orderIn", spec = In.class)
 	public interface CustomSpecification extends Specification<Customer> {
 	}
 
 	@Test
 	public void shouldCreateSpecification() {
-		Specification<Customer> spec = (Specification<Customer>) specification(CustomSpecification.class)
-				.withArg("name", Arrays.asList("l"))
+		Specification<?> spec = specification(CustomSpecification.class)
+				.withParams("orderIn", Arrays.asList("Pizza"))
 				.build();
 
-		List<Customer> customers = customerRepo.findAll(spec);
+		List<Customer> customers = customerRepo.findAll((Specification<Customer>) spec);
 
-		System.out.println();
-
-		assertThat(customers.size()).isEqualTo(4);
+		assertThat(customers.size()).isEqualTo(1);
 	}
-
-
 }

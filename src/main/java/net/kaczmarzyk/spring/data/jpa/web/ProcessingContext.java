@@ -21,15 +21,15 @@ import java.lang.annotation.Annotation;
 
 public interface ProcessingContext {
 
-	public Class<?> getParameterType();
+	Class<?> getParameterType();
 
-	public Annotation[] getParameterAnnotations();
+	Annotation[] getParameterAnnotations();
 
-	public QueryContext queryContext();
+	QueryContext queryContext();
 
-	public String getRequestHeaderValue(String headerKey);
+	String getRequestHeaderValue(String headerKey);
 
-	public String[] getParameterValues(String webParamName);
+	String[] getParameterValues(String webParamName);
 
-	public String getPathVariableValue(String pathVariableName);
+	String getPathVariableValue(String pathVariableName);
 }

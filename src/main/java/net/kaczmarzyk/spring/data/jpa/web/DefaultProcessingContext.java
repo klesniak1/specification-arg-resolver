@@ -17,40 +17,49 @@ package net.kaczmarzyk.spring.data.jpa.web;
 
 import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
 
+import javax.management.Query;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
+
 public class DefaultProcessingContext implements ProcessingContext {
 
-	private Class<?> ifaceSpec;
+	private Class<?> specInterface;
 
 	private Map<String, List<String>> args;
 	private Map<String, String> pathVariableArgs;
 	private Map<String, List<String>> parameterArgs;
 	private Map<String, String> headerArgs;
 
-	public DefaultProcessingContext(Class<?> ifaceSpec, Map<String, List<String>> args, Map<String, String> pathVariableArgs, Map<String, List<String>> parameterArgs, Map<String, String> headerArgs) {
-		this.ifaceSpec = ifaceSpec;
+	private QueryContext queryContext;
+
+	public DefaultProcessingContext(Class<?> specInterface, Map<String, List<String>> args, Map<String, String> pathVariableArgs, Map<String, List<String>> parameterArgs, Map<String, String> headerArgs) {
+		this.specInterface = specInterface;
 		this.args = args;
 		this.pathVariableArgs = pathVariableArgs;
 		this.parameterArgs = parameterArgs;
 		this.headerArgs = headerArgs;
+		this.queryContext = new DefaultQueryContext();
 	}
 
 	@Override
 	public Class<?> getParameterType() {
-		return ifaceSpec;
+		return specInterface;
 	}
 
 	@Override
 	public Annotation[] getParameterAnnotations() {
-		return ifaceSpec.getAnnotations();
+		return specInterface.getAnnotations();
 	}
 
 	@Override
 	public QueryContext queryContext() {
-		return new DefaultQueryContext();
+		if (isNull(queryContext)) {
+			this.queryContext = new DefaultQueryContext();
+		}
+		return queryContext;
 	}
 
 	@Override

@@ -112,15 +112,13 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 		return EnhancerUtil.wrapWithIfaceImplementation(parameter.getParameterType(), spec);
 	}
 
-	public Object resolveArgument(Class<?> ifaceSpec,
-								  Map<String, List<String>> args,
-								  Map<String, String> pathVariableArgs,
-								  Map<String, List<String>> parameterArgs,
-								  Map<String, String> headerArgs) {
+	public Specification<?> resolveArgument(Class<?> specInterface,
+											Map<String, List<String>> args,
+											Map<String, String> pathVariableArgs,
+											Map<String, List<String>> parameterArgs,
+											Map<String, String> headerArgs) {
 
-		ProcessingContext context = new DefaultProcessingContext(ifaceSpec, args, pathVariableArgs, parameterArgs, headerArgs);
-
-		Type specClassType = ifaceSpec.getGenericSuperclass();
+		ProcessingContext context = new DefaultProcessingContext(specInterface, args, pathVariableArgs, parameterArgs, headerArgs);
 
 		List<Specification<Object>> specs = resolveSpec(context);
 
@@ -131,16 +129,16 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 		if (specs.size() == 1) {
 			Specification<Object> firstSpecification = specs.iterator().next();
 
-			if (Specification.class == ifaceSpec) {
+			if (Specification.class == specInterface) {
 				return firstSpecification;
 			} else {
-				return EnhancerUtil.wrapWithIfaceImplementation(ifaceSpec, firstSpecification);
+				return (Specification<?>) EnhancerUtil.wrapWithIfaceImplementation(specInterface, firstSpecification);
 			}
 		}
 
 		Specification<Object> spec = new net.kaczmarzyk.spring.data.jpa.domain.Conjunction<>(specs);
 
-		return EnhancerUtil.wrapWithIfaceImplementation(ifaceSpec, spec);
+		return (Specification<?>) EnhancerUtil.wrapWithIfaceImplementation(specInterface, spec);
 	}
 
 	private List<Specification<Object>> resolveSpec(ProcessingContext context) {
@@ -148,7 +146,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 
 		resolveSpecFromInterfaceAnnotations(context, specAccumulator);
 		resolveSpecFromParameterAnnotations(context, specAccumulator);
-
+		System.out.println();
 		return specAccumulator;
 	}
 
