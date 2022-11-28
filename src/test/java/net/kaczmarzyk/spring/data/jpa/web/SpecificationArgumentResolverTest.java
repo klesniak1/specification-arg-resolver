@@ -171,7 +171,7 @@ public class SpecificationArgumentResolverTest extends ResolverTestBase {
     public void resolvesJoinContainerForAnnotatedInterface() throws Exception {
         MethodParameter param = MethodParameter.forExecutable(testMethod("testMethodWithCustomSpec_joinContainer", CustomSpecJoinContainer.class), 0);
         NativeWebRequest req = mock(NativeWebRequest.class);
-        QueryContext queryCtx = new WebRequestQueryContext(req);
+        QueryContext queryCtx = new DefaultQueryContext();
 
         when(req.getParameterValues("path1")).thenReturn(new String[] { "value1" });
 
