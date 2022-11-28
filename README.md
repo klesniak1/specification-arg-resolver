@@ -970,6 +970,35 @@ Cache support
 
 Specification argument resolver supports [spring cache](https://docs.spring.io/spring-boot/docs/2.6.x/reference/html/io.html#io.caching). Equals and HashCode contract is satisfied for generated specifications.
 
+Specification building apart from web layer
+------------------------------------------
+
+Specification argument resolver supports creating specifications apart from web layer. 
+To create specification, use `SpecificationBuilder` class.
+
+Example of use:
+* Create an interface with specification, e.g.:
+    ```java
+    @Join(path = "orders", alias = "o")
+    @Spec(paths = "o.itemName", params = "orderItem", spec=Like.class)
+    public interface CustomerByOrdersSpec implements Specification<Customer> {
+    }
+    ```
+    * Depending on created specification interface, you can use static `specification()` method from `SpecificationBuilder` class
+      to generate `Specification<T>` object.
+      ```java
+      Specification<Customer> spec = specification(CustomerByOrdersSpec.class)
+            .withParams("orderItem", "Pizza")
+            .build();            
+      ```
+    * It is recommended to use builder methods that corresponding to the type of argument type passed to specification interface, e.g.:
+        * `params = <args>` => `withParams(<argName>, <values...>)`, single param argument can provide multiple values
+        * `pathVars = <args>` => `withPathVar(<argName>, <value>)`, single pathVar argument can provide single value
+        * `headers = <args>` => `withHeader(<argName>, <value>)`, single header argument can provide single value
+
+  Note: There is additional method `withArg(<argName>, <values...>)` that store passed values as a fallback for above methods. In other words -
+  if argument is not present in the corresponding map, it will be searched in the fallback map.
+
 Compatibility notes
 -------------------
 
