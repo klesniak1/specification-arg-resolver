@@ -18,7 +18,6 @@ package net.kaczmarzyk.spring.data.jpa.utils;
 
 import net.kaczmarzyk.E2eTestBase;
 import net.kaczmarzyk.spring.data.jpa.Customer;
-import net.kaczmarzyk.spring.data.jpa.Order;
 import net.kaczmarzyk.spring.data.jpa.domain.In;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
@@ -37,13 +36,47 @@ public class SpecificationBuilderTest extends E2eTestBase {
 
 	@Join(path = "orders", alias = "o")
 	@Spec(path = "o.itemName", pathVars = "orderIn", spec = In.class)
-	public interface CustomSpecification extends Specification<Customer> {
+	public interface CustomSpecificationWitPathVar extends Specification<Customer> {
+	}
+
+	@Join(path = "orders", alias = "o")
+	@Spec(path = "o.itemName", params = "orderIn", spec = In.class)
+	public interface CustomSpecificationWithParam extends Specification<Customer> {
+	}
+
+	@Join(path = "orders", alias = "o")
+	@Spec(path = "o.itemName", headers = "orderIn", spec = In.class)
+	public interface CustomSpecificationWithHeader extends Specification<Customer> {
 	}
 
 	@Test
-	public void shouldCreateSpecification() {
-		Specification<Customer> spec = specification(CustomSpecification.class)
+	public void shouldCreateSpecificationDependingOnPathVar() {
+		Specification<Customer> spec = specification(CustomSpecificationWitPathVar.class)
 				.withPathVar("orderIn", "Pizza")
+				.build();
+
+		List<Customer> customers = customerRepo.findAll(spec);
+
+		assertThat(customers.size()).isEqualTo(1);
+		assertThat(customers.get(0).getFirstName()).isEqualTo("Homer");
+	}
+
+	@Test
+	public void shouldCreateSpecificationDependingOnParam() {
+		Specification<Customer> spec = specification(CustomSpecificationWithParam.class)
+				.withParam("orderIn", "Pizza")
+				.build();
+
+		List<Customer> customers = customerRepo.findAll(spec);
+
+		assertThat(customers.size()).isEqualTo(1);
+		assertThat(customers.get(0).getFirstName()).isEqualTo("Homer");
+	}
+
+	@Test
+	public void shouldCreateSpecificationDependingOnHeader() {
+		Specification<Customer> spec = specification(CustomSpecificationWithHeader.class)
+				.withHeader("orderIn", "Pizza")
 				.build();
 
 		List<Customer> customers = customerRepo.findAll(spec);
