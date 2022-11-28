@@ -69,9 +69,6 @@ public class WebRequestProcessingContext implements ProcessingContext {
 
 	@Override
 	public QueryContext queryContext() {
-		if (isNull(queryContext)) {
-			this.queryContext = new DefaultQueryContext();
-		}
 		return queryContext;
 	}
 

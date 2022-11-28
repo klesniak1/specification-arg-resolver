@@ -20,7 +20,6 @@ import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -30,7 +29,7 @@ public class StandaloneProcessingContext implements ProcessingContext {
 
 	private Class<?> specInterface;
 
-	private Map<String, String[]> args;
+	private Map<String, String[]> fallbackArgumentValues;
 	private Map<String, String> pathVariableArgs;
 	private Map<String, String[]> parameterArgs;
 	private Map<String, String> headerArgs;
@@ -38,12 +37,12 @@ public class StandaloneProcessingContext implements ProcessingContext {
 	private QueryContext queryContext;
 
 	public StandaloneProcessingContext(Class<?> specInterface,
-									   Map<String, String[]> args,
+									   Map<String, String[]> fallbackArgumentValues,
 									   Map<String, String> pathVariableArgs,
 									   Map<String, String[]> parameterArgs,
 									   Map<String, String> headerArgs) {
 		this.specInterface = specInterface;
-		this.args = args;
+		this.fallbackArgumentValues = fallbackArgumentValues;
 		this.pathVariableArgs = pathVariableArgs;
 		this.parameterArgs = parameterArgs;
 		this.headerArgs = headerArgs;
@@ -62,29 +61,25 @@ public class StandaloneProcessingContext implements ProcessingContext {
 
 	@Override
 	public QueryContext queryContext() {
-		if (isNull(queryContext)) {
-			this.queryContext = new DefaultQueryContext();
-		}
 		return queryContext;
 	}
 
 	@Override
 	public String getRequestHeaderValue(String headerKey) {
-		return !isNull(headerArgs.get(headerKey)) ? headerArgs.get(headerKey) : getFallbackValue(headerKey);
+		return headerArgs.containsKey(headerKey) ? headerArgs.get(headerKey) : getFallbackValue(headerKey);
 	}
 
 	@Override
 	public String[] getParameterValues(String webParamName) {
-		return !isNull(parameterArgs.get(webParamName)) ? parameterArgs.get(webParamName) : getFallbackValues(webParamName);
+		return parameterArgs.containsKey(webParamName) ? parameterArgs.get(webParamName) : getFallbackValues(webParamName);
 	}
 
 	@Override
 	public String getPathVariableValue(String pathVariableName) {
-		String value = pathVariableArgs.get(pathVariableName);
 		String fallbackValue = getFallbackValue(pathVariableName);
 
-		if (nonNull(value)) {
-			return value;
+		if (pathVariableArgs.containsKey(pathVariableName)) {
+			return pathVariableArgs.get(pathVariableName);
 		} else if (nonNull(fallbackValue)) {
 			return fallbackValue;
 		} else {
@@ -93,16 +88,13 @@ public class StandaloneProcessingContext implements ProcessingContext {
 	}
 
 	private String[] getFallbackValues(String argName) {
-		if (isNull(args.get(argName)) || args.get(argName).length == 0) {
-			return null;
-		}
-		return args.get(argName);
+		return fallbackArgumentValues.get(argName);
 	}
 
 	private String getFallbackValue(String argName) {
-		if (isNull(args.get(argName)) || args.get(argName).length == 0) {
+		if (!fallbackArgumentValues.containsKey(argName) || fallbackArgumentValues.get(argName).length == 0) {
 			return null;
 		}
-		return args.get(argName)[0];
+		return fallbackArgumentValues.get(argName)[0];
 	}
 }

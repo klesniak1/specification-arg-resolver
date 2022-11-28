@@ -28,11 +28,11 @@ import java.util.Map;
  */
 public class SpecificationBuilder<T extends Specification> {
 
-	private static SpecificationFactory DEFAULT_SPECIFICATION_FACTORY = new SpecificationFactory(null, null);
+	private SpecificationFactory specificationFactory = new SpecificationFactory(null, null);
 
 	private Class<T> specInterface;
 
-	private Map<String, String[]> args = new HashMap<>();
+	private Map<String, String[]> fallbackSpecificationParamValues = new HashMap<>();
 	private Map<String, String> pathVars = new HashMap<>();
 	private Map<String, String[]> params = new HashMap<>();
 	private Map<String, String> headers = new HashMap<>();
@@ -45,14 +45,13 @@ public class SpecificationBuilder<T extends Specification> {
 		return new SpecificationBuilder<T>(specInterface);
 	}
 
-	/**
-	 * Method is not recommended to use, it can provide to specific behaviour which might not be expected.
-	 * e.g. It will take only first value of passed array of values when defined specification is set to take them from pathVariable or header.
-	 * It's caused by assumptions of SAR, that single pathVariable or header can consist single value.
-	 * Recommended way is to use same argument type as defined in specification.
-	 */
+	public SpecificationBuilder<T> withSpecificationFactory(SpecificationFactory specificationFactory) {
+		this.specificationFactory = specificationFactory;
+		return this;
+	}
+
 	public SpecificationBuilder<T> withArg(String arg, String... values) {
-		this.args.put(arg, values);
+		this.fallbackSpecificationParamValues.put(arg, values);
 		return this;
 	}
 
@@ -73,11 +72,11 @@ public class SpecificationBuilder<T extends Specification> {
 
 	public T build() {
 		ProcessingContext context = createContext();
-		return (T) DEFAULT_SPECIFICATION_FACTORY.createSpecificationDependingOn(context);
+		return (T) specificationFactory.createSpecificationDependingOn(context);
 	}
 
 	private ProcessingContext createContext() {
-		return new StandaloneProcessingContext(specInterface, args, pathVars, params, headers);
+		return new StandaloneProcessingContext(specInterface, fallbackSpecificationParamValues, pathVars, params, headers);
 	}
 
 }

@@ -973,31 +973,31 @@ Specification argument resolver supports [spring cache](https://docs.spring.io/s
 Specification building apart from web layer
 ------------------------------------------
 
-Specification argument resolver supports creating specifications apart from web layer. 
-To create specification, use `SpecificationBuilder` class.
+Specification argument resolver supports creating specifications apart from web layer.
+To build specification outside the web-layer the `SpecificationBuilder` should be used:
 
-Example of use:
-* Create an interface with specification, e.g.:
+* Let's assume following specification:
     ```java
     @Join(path = "orders", alias = "o")
     @Spec(paths = "o.itemName", params = "orderItem", spec=Like.class)
     public interface CustomerByOrdersSpec implements Specification<Customer> {
     }
     ```
-* Depending on created specification interface, you can use static `specification()` method from `SpecificationBuilder` class
-  to generate `Specification<T>` object.
+* Specification could be build as follows:
     ```java
     Specification<Customer> spec = specification(CustomerByOrdersSpec.class)
         .withParams("orderItem", "Pizza")
         .build();            
     ```
-  * It is recommended to use builder methods that corresponding to the type of argument type passed to specification interface, e.g.:
-      * `params = <args>` => `withParams(<argName>, <values...>)`, single param argument can provide multiple values
-      * `pathVars = <args>` => `withPathVar(<argName>, <value>)`, single pathVar argument can provide single value
-      * `headers = <args>` => `withHeader(<argName>, <value>)`, single header argument can provide single value
+* By default, the specification builder does not support SPeL and does not use spring conversion service. To build specification with SPeL support and spring conversion service you should:
+    ```java
+    Specification<Customer> spec = SpecificationBuilder.specification(CustomerByOrdersSpec.class)
+        .withSpecificationFactory(new SpecificationFactory(conversionService, abstractApplicationContext))
+        .withParams("orderItem", "Pizza")
+        .build();
+	```
 
-  Note: There is additional method `withArg(<argName>, <values...>)` that store passed values as a fallback for above methods. In other words -
-  if argument is not present in the corresponding map, it will be searched in the fallback map.
+  Note: There is additional method `withArg(<argName>, <values...>)` that store values used as fallback in case of missing path/header/query param value.
 
 Compatibility notes
 -------------------
