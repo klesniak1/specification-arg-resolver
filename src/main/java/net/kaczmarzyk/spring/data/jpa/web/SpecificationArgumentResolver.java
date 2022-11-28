@@ -25,12 +25,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 
 
 /**
@@ -39,7 +33,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public class SpecificationArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private Map<Class<? extends Annotation>, SpecificationResolver<? extends Annotation>> resolversBySupportedType;
+	private SpecificationFactory specificationFactory;
 
 	public SpecificationArgumentResolver() {
 		 this(null, null);
@@ -54,25 +48,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 	}
 	
 	public SpecificationArgumentResolver(ConversionService conversionService, AbstractApplicationContext abstractApplicationContext) {
-		SimpleSpecificationResolver simpleSpecificationResolver = new SimpleSpecificationResolver(conversionService, abstractApplicationContext);
-		
-		resolversBySupportedType = Arrays.asList(
-				simpleSpecificationResolver,
-				new OrSpecificationResolver(simpleSpecificationResolver),
-				new DisjunctionSpecificationResolver(simpleSpecificationResolver),
-				new ConjunctionSpecificationResolver(simpleSpecificationResolver),
-				new AndSpecificationResolver(simpleSpecificationResolver),
-				new JoinSpecificationResolver(),
-				new JoinsSpecificationResolver(),
-				new JoinFetchSpecificationResolver(),
-				new RepeatedJoinFetchResolver(),
-				new RepeatedJoinResolver()).stream()
-				.collect(toMap(
-								SpecificationResolver::getSupportedSpecificationDefinition,
-								identity(),
-								(u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
-								LinkedHashMap::new
-						));
+		this.specificationFactory = new SpecificationFactory(conversionService, abstractApplicationContext);
 	}
 	
 
@@ -94,7 +70,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 
 	private boolean isAnnotated(MethodParameter methodParameter) {
 		for (Annotation annotation : methodParameter.getParameterAnnotations()) {
-			for (Class<? extends Annotation> annotationType : resolversBySupportedType.keySet()) {
+			for (Class<? extends Annotation> annotationType : specificationFactory.getResolversBySupportedType()) {
 				if (annotationType.equals(annotation.annotationType())) {
 					return true;
 				}
@@ -106,7 +82,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 
 	private final boolean isAnnotatedRecursively(Class<?> target) {
 		if (target.getAnnotations().length != 0) {
-			for (Class<? extends Annotation> annotationType : resolversBySupportedType.keySet()) {
+			for (Class<? extends Annotation> annotationType : specificationFactory.getResolversBySupportedType()) {
 				if (target.getAnnotation(annotationType) != null) {
 					return true;
 				}

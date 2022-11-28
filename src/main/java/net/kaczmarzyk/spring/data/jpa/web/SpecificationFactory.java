@@ -1,18 +1,62 @@
+/**
+ * Copyright 2014-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.kaczmarzyk.spring.data.jpa.web;
 
 import net.kaczmarzyk.spring.data.jpa.utils.TypeUtil;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static java.util.Objects.nonNull;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
+/**
+ * @author Kacper Leśniak
+ */
 public class SpecificationFactory {
 
+	private Map<Class<? extends Annotation>, SpecificationResolver<? extends Annotation>> resolversBySupportedType;
+
+	public SpecificationFactory(ConversionService conversionService, AbstractApplicationContext abstractApplicationContext) {
+		SimpleSpecificationResolver simpleSpecificationResolver = new SimpleSpecificationResolver(conversionService, abstractApplicationContext);
+
+		resolversBySupportedType = Arrays.asList(
+						simpleSpecificationResolver,
+						new OrSpecificationResolver(simpleSpecificationResolver),
+						new DisjunctionSpecificationResolver(simpleSpecificationResolver),
+						new ConjunctionSpecificationResolver(simpleSpecificationResolver),
+						new AndSpecificationResolver(simpleSpecificationResolver),
+						new JoinSpecificationResolver(),
+						new JoinsSpecificationResolver(),
+						new JoinFetchSpecificationResolver(),
+						new RepeatedJoinFetchResolver(),
+						new RepeatedJoinResolver()).stream()
+				.collect(toMap(
+						SpecificationResolver::getSupportedSpecificationDefinition,
+						identity(),
+						(u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+						LinkedHashMap::new
+				));
+
+	}
 
 	public Specification<?> createSpecificationDependingOn(ProcessingContext context) {
 		List<Specification<Object>> specs = resolveSpec(context);
@@ -108,4 +152,7 @@ public class SpecificationFactory {
 		}
 	}
 
+	public Set<Class<? extends Annotation>> getResolversBySupportedType() {
+		return resolversBySupportedType.keySet();
+	}
 }

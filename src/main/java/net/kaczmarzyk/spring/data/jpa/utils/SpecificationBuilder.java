@@ -16,58 +16,68 @@
 package net.kaczmarzyk.spring.data.jpa.utils;
 
 import net.kaczmarzyk.spring.data.jpa.web.ProcessingContext;
-import net.kaczmarzyk.spring.data.jpa.web.SpecificationArgumentResolver;
 import net.kaczmarzyk.spring.data.jpa.web.SpecificationFactory;
 import net.kaczmarzyk.spring.data.jpa.web.StandaloneProcessingContext;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class SpecificationBuilder {
+/**
+ * @author Kacper Leśniak
+ */
+public class SpecificationBuilder<T extends Specification> {
 
-	private Class<?> specInterface;
+	private static SpecificationFactory DEFAULT_SPECIFICATION_FACTORY = new SpecificationFactory(null, null);
 
-	private Map<String, List<String>> args = new HashMap<>();
+	private Class<T> specInterface;
+
+	private Map<String, String[]> args = new HashMap<>();
 	private Map<String, String> pathVars = new HashMap<>();
-	private Map<String, List<String>> params = new HashMap<>();
+	private Map<String, String[]> params = new HashMap<>();
 	private Map<String, String> headers = new HashMap<>();
 
-	SpecificationFactory specificationFactory;
-
-	private SpecificationBuilder(Class<?> specInterface) {
+	private SpecificationBuilder(Class<T> specInterface) {
 		this.specInterface = specInterface;
-		this.specificationFactory = new SpecificationFactory();
 	}
 
-	public static SpecificationBuilder specification(Class<? extends Specification<?>> specInterface) {
-		return new SpecificationBuilder(specInterface);
+	public static <T extends Specification<?>> SpecificationBuilder<T> specification(Class<T> specInterface) {
+		return new SpecificationBuilder<T>(specInterface);
 	}
 
-	public SpecificationBuilder withArg(String arg, List<String> values) {
+	/**
+	 * Method is not recommended to use, it can provide to specific behaviour which might not be expected.
+	 * e.g. It will take only first value of passed array of values when defined specification is set to take them from pathVariable or header.
+	 * It's caused by assumptions of SAR, that single pathVariable or header can consist single value.
+	 * Recommended way is to use same argument type as defined in specification.
+	 */
+	public SpecificationBuilder<T> withArg(String arg, String... values) {
 		this.args.put(arg, values);
 		return this;
 	}
 
-	public SpecificationBuilder withParams(String param, List<String> values) {
+	public SpecificationBuilder<T> withParam(String param, String... values) {
 		this.params.put(param, values);
 		return this;
 	}
 
-	public SpecificationBuilder withPathVar(String pathVar, String value) {
+	public SpecificationBuilder<T> withPathVar(String pathVar, String value) {
 		this.pathVars.put(pathVar, value);
 		return this;
 	}
 
-	public SpecificationBuilder withHeader(String header, String value) {
+	public SpecificationBuilder<T> withHeader(String header, String value) {
 		this.headers.put(header, value);
 		return this;
 	}
 
-	public Specification<?> build() {
-		ProcessingContext context = new StandaloneProcessingContext(specInterface, args, pathVars, params, headers);
-		return specificationFactory.createSpecificationDependingOn(context);
+	public T build() {
+		ProcessingContext context = createContext();
+		return (T) DEFAULT_SPECIFICATION_FACTORY.createSpecificationDependingOn(context);
+	}
+
+	private ProcessingContext createContext() {
+		return new StandaloneProcessingContext(specInterface, args, pathVars, params, headers);
 	}
 
 }

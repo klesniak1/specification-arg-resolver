@@ -13,40 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.kaczmarzyk;
+package net.kaczmarzyk.spring.data.jpa.utils;
 
 
+import net.kaczmarzyk.E2eTestBase;
 import net.kaczmarzyk.spring.data.jpa.Customer;
-import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.Order;
 import net.kaczmarzyk.spring.data.jpa.domain.In;
-import net.kaczmarzyk.spring.data.jpa.domain.LikeIgnoreCase;
-import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static net.kaczmarzyk.spring.data.jpa.utils.SpecificationBuilder.specification;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Kacper Leśniak
+ */
 public class SpecificationBuilderTest extends E2eTestBase {
 
 	@Join(path = "orders", alias = "o")
-	@Spec(path = "o.itemName", params = "orderIn", spec = In.class)
+	@Spec(path = "o.itemName", pathVars = "orderIn", spec = In.class)
 	public interface CustomSpecification extends Specification<Customer> {
 	}
 
 	@Test
 	public void shouldCreateSpecification() {
-		Specification<?> spec = specification(CustomSpecification.class)
-				.withParams("orderIn", Arrays.asList("Pizza"))
+		Specification<Customer> spec = specification(CustomSpecification.class)
+				.withPathVar("orderIn", "Pizza")
 				.build();
 
-		List<Customer> customers = customerRepo.findAll((Specification<Customer>) spec);
+		List<Customer> customers = customerRepo.findAll(spec);
 
 		assertThat(customers.size()).isEqualTo(1);
+		assertThat(customers.get(0).getFirstName()).isEqualTo("Homer");
 	}
 }

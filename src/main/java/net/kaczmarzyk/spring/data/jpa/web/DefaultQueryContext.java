@@ -17,7 +17,6 @@ package net.kaczmarzyk.spring.data.jpa.web;
 
 import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.Join;
