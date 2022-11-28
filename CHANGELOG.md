@@ -1,6 +1,7 @@
 v2.10.0 - not released yet
 =======
-* added conversion support for `Timestamp`
+* Added conversion support for `Timestamp`
+* Added `SpecificationBuilder` that allows creating specification apart from web layer
 
 v2.9.0
 ======
