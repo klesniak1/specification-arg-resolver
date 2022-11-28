@@ -1,7 +1,30 @@
 v2.10.0 - not released yet
 =======
 * Added conversion support for `Timestamp`
-* Added `SpecificationBuilder` that allows creating specification apart from web layer
+* Added `SpecificationBuilder` that allows creating specification apart from web layer.
+
+  For example:
+  * Create an interface with specification, e.g.:
+    ```java
+    @Join(path = "orders", alias = "o")
+    @Spec(paths = "o.itemName", params = "orderItem", spec=Like.class)
+    public interface CustomerByOrdersSpec implements Specification<Customer> {
+    }
+    ```
+  * Depending on created specification interface, you can use static `specification()` method from `SpecificationBuilder` class
+    to generate `Specification<T>` object. Example of use:
+    ```java
+    Specification<Customer> spec = specification(CustomerByOrdersSpec.class)
+          .withParams("orderItem", "Pizza")
+          .build();            
+    ```
+  * It is recommended to use builder methods that corresponding to the type of argument type passed to specification interface, e.g.:
+    * `params = <args>` => `withParams(<argName>, <values...>)`, single param argument can provide multiple values
+    * `pathVars = <args>` => `withPathVar(<argName>, <value>)`, single pathVar argument can provide single value
+    * `headers = <args>` => `withHeader(<argName>, <value>)`, single header argument can provide single value
+    
+  Note: There is additional method `withArg(<argName>, <values...>)` that store passed values as a fallback for above methods. In other words - 
+  if argument is not present in the corresponding map, it will be searched in the fallback map.
 
 v2.9.0
 ======
