@@ -9,14 +9,36 @@ public class A {
 	@GeneratedValue
 	Long id;
 
-	@OneToOne(mappedBy = "a", fetch = FetchType.EAGER)
+	@OneToOne(mappedBy = "a")
 	B b;
 
-	public A(B b) {
+	String example;
+
+	String name;
+
+	public A(B b, String example, String name) {
 		this.b = b;
+		this.example = example;
+		this.name = name;
 	}
 
 	public A() {
 
+	}
+
+	public B getB() {
+		return b;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getExample() {
+		return example;
+	}
+
+	public String getName() {
+		return name;
 	}
 }

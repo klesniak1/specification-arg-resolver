@@ -18,9 +18,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.persistence.criteria.JoinType;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TestClass extends E2eTestBase {
 
@@ -30,8 +33,8 @@ public class TestClass extends E2eTestBase {
 	@Autowired
 	BRepository bRepository;
 
-	@Join(path = "b", alias = "bb")
-	@Spec(path = "bb.id", params = "bIsNull", spec = Null.class)
+	@Join(path = "b", alias = "b", type = JoinType.LEFT)
+	@Spec(path = "b", params = "bIsNull", spec = Null.class)
 	public interface CustomSpec extends Specification<A> {}
 
 	@Controller
@@ -42,23 +45,20 @@ public class TestClass extends E2eTestBase {
 		@RequestMapping(value = "/test", params = { "bIsNull" })
 		@ResponseBody
 		public Object findByNameAndStreet(CustomSpec spec) {
-
-			Iterable<A> all = aRepository.findAll();
-			List<A> as = aRepository.findAll(spec);
-			return as;
+			return aRepository.findAll(spec);
 		}
 	}
 
 	@Test
 	public void findsNullAValues() throws Exception {
-		aRepository.save(new A(null));
-		B b = bRepository.save(new B());
-		aRepository.save(new A(b));
+		aRepository.save(new A(null, null, "name1"));
 
-		MvcResult mvcResult = mockMvc.perform(get("/test")
+		mockMvc.perform(get("/test")
 						.param("bIsNull", "true")
 						.accept(MediaType.APPLICATION_JSON))
-				.andReturn();
+						.andExpect(status().isOk())
+						.andExpect(jsonPath("$").isArray())
+				 		.andExpect(jsonPath("$[?(@.name=='name1')]").exists());
 
 
 		System.out.println();

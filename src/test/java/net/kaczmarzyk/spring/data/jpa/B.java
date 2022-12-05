@@ -10,7 +10,7 @@ public class B {
 	Long id;
 
 	@JoinColumn(name = "a_id")
-	@OneToOne(fetch = FetchType.EAGER)
+	@OneToOne
 	A a;
 
 	public B(A a) {
@@ -19,5 +19,13 @@ public class B {
 
 	public B() {
 
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public A getA() {
+		return a;
 	}
 }
