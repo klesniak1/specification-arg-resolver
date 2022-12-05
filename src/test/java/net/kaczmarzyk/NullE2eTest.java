@@ -27,6 +27,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +46,9 @@ public class NullE2eTest extends E2eTestBase {
 		@ResponseBody
 		public Object findCharacters(
 				@Spec(path = "nickName", params = "nickNameNull", spec = Null.class) Specification<Customer> spec) {
-			return customerRepo.findAll(spec);
+			List<Customer> customers = customerRepo.findAll(spec);
+			System.out.println();
+			return customers;
 		}
 	}
 
