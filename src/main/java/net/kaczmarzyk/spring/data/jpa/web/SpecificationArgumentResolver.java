@@ -56,7 +56,7 @@ public class SpecificationArgumentResolver implements HandlerMethodArgumentResol
 	public boolean supportsParameter(MethodParameter parameter) {
 		Class<?> paramType = parameter.getParameterType();
 
-		return paramType.isInterface() && Specification.class.isAssignableFrom(paramType) && isAnnotated(parameter);
+		return Specification.class.isAssignableFrom(paramType) && isAnnotated(parameter);
 	}
 
 	@Override

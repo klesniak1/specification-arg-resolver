@@ -15,6 +15,9 @@
  */
 package net.kaczmarzyk.spring.data.jpa.utils;
 
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -26,7 +29,10 @@ public abstract class TypeUtil {
 
 	public static Collection<Class<?>> interfaceTree(Class<?> iface) {
 		if (!iface.isInterface()) {
-			throw new IllegalArgumentException(iface + " is not an interface!");
+			iface = Arrays.stream(iface.getSuperclass().getInterfaces())
+					.filter(Specification.class::isAssignableFrom)
+					.findFirst()
+					.orElseThrow(() -> new IllegalStateException("Interface of type Specification not found!"));
 		}
 		return interfaceTree(iface, new HashSet<Class<?>>());
 	}

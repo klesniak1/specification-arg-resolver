@@ -67,7 +67,7 @@ public class ProxyGenerationStrategyTest extends ResolverTestBase {
         assertThat(innerSpecs(resolved))
                 .hasSize(2)
                 .contains(new net.kaczmarzyk.spring.data.jpa.domain.Join<>(queryCtx, "join1", "alias1", JoinType.LEFT, true))
-                .contains(new Like<>(queryCtx, "path1", new String[]{"value1"}));
+                .contains(new Like<>(queryCtx, "path1", new String[]{ "value1" }));
     }
 
     @Test
@@ -90,6 +90,21 @@ public class ProxyGenerationStrategyTest extends ResolverTestBase {
                         new Like<>(queryCtx, "path1", new String[] { "value1" }),
                         new Like<>(queryCtx, "path2", new String[] { "value2" })
                 );
+    }
+
+    @Test
+    public void proxyShouldNotBeGeneratedWhenMethodParameterIsOfTypeLike_isAnnotatedWithSingleInnerSpec() throws Exception {
+        MethodParameter param = MethodParameter.forExecutable(testMethod("testMethod_singleInnerSpecOnLikeTypeParameter", Like.class), 0);
+        NativeWebRequest req = mock(NativeWebRequest.class);
+        QueryContext queryCtx = new DefaultQueryContext();
+        when(req.getParameterValues("path1")).thenReturn(new String[] { "value1" });
+
+        Specification<?> resolved = (Specification<?>) resolver.resolveArgument(param, null, req, null);
+
+        assertThatSpecIsNotProxy(resolved);
+
+        assertThat(resolved)
+                .isEqualTo(new Like<>(queryCtx, "path1", new String[] { "value1" }));
     }
 
     @Test
@@ -136,6 +151,10 @@ public class ProxyGenerationStrategyTest extends ResolverTestBase {
                                 @Spec(path = "path1", spec = Like.class),
                                 @Spec(path = "path2", spec = Like.class)
                         })) Specification<Object> spec) {
+        }
+
+        public void testMethod_singleInnerSpecOnLikeTypeParameter(
+                        @Spec(path = "path1", spec = Like.class) Like<Object> spec) {
         }
 
         public void testMethod_interfaceSpecificationAsMethodParameter(

@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import net.kaczmarzyk.spring.data.jpa.Customer;
 import net.kaczmarzyk.spring.data.jpa.CustomerRepository;
+import net.kaczmarzyk.spring.data.jpa.domain.EmptyResultOnTypeMismatch;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
@@ -59,7 +60,7 @@ public class EqualE2eTest extends E2eTestBase {
 		@RequestMapping(value = "/customers", params = "registrationDateEq")
 		@ResponseBody
 		public Object findCustomersByRegistrationDate(
-				@Spec(path="registrationDate", params = "registrationDateEq", spec=Equal.class) Specification<Customer> spec) {
+				@Spec(path="registrationDate", params = "registrationDateEq", spec=Equal.class) EmptyResultOnTypeMismatch<Customer> spec) {
 			
 			return customerRepo.findAll(spec);
 		}

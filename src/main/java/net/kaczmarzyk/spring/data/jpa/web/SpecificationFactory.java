@@ -15,6 +15,7 @@
  */
 package net.kaczmarzyk.spring.data.jpa.web;
 
+import net.kaczmarzyk.spring.data.jpa.domain.EmptyResultOnTypeMismatch;
 import net.kaczmarzyk.spring.data.jpa.utils.TypeUtil;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.convert.ConversionService;
